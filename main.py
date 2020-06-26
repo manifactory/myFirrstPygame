@@ -39,9 +39,9 @@ test_map = [[0,0,0,0,0,0,0,0,0,0,0,0],
             [0,0,0,0,0,0,0,0,0,0,0,0],
             [0,0,0,0,0,0,0,0,0,0,0,0],
             [0,0,0,0,0,0,0,0,0,0,0,0],
-            [0,0,0,0,0,0,0,0,1,1,0,0],
+            [0,0,0,3,3,0,0,0,0,0,0,0],
             [0,0,0,0,0,0,0,0,0,0,0,0],
-            [0,0,0,0,0,0,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0,0,3,3,0,0],
             [0,0,0,0,0,0,0,0,0,0,0,0],
             [0,0,0,0,0,0,0,0,0,0,0,0],
             [1,1,1,1,1,1,1,1,1,1,1,1],
@@ -53,37 +53,38 @@ player_rect = pygame.Rect(player_location[0],player_location[1],player_image.get
 def collision_test(rect,tiles):
     hit_list=[]
     for tile in tiles:
-        if rect.colliderect(tile):
+        if rect.colliderect(tile[0]):
             hit_list.append(tile)
     return hit_list
 
 def check_movement_collide(rect,movement,tiles):
     collision_type = {'top':False,'bottom':False,'left':False,'right':False}
     rect.x += movement[0]
-    for tile in collision_test(rect,tiles):
+    for tile,tile_form in collision_test(rect,tiles):
         if movement[0] < 0:
-            rect.left = tile.left
+            rect.left = tile.right
             collision_type['left']=True
         elif movement[0] > 0:
-            rect.left = tile.right
+            rect.right = tile.left
             collision_type['right']=True
     rect.y += movement[1]
-    for tile in collision_test(rect,tiles):
+    for tile,tile_form in collision_test(rect,tiles):
         if movement[1] < 0:
-            rect.top = tile.bottom
+            if tile_form =='block':
+                rect.top = tile.bottom
             collision_type['top']=True
         elif movement[1] > 0:
+            
             rect.bottom = tile.top
             collision_type['bottom']=True
     return rect, collision_type
-
 
 #main code
 while True:
     display.fill((255,255,255))
 
     #draw tile
-    tile_rect=[]
+    tiles=[]
     y=0
     for line in test_map:
         x=0
@@ -92,8 +93,10 @@ while True:
                 display.blit(grass_img,[x*16,y*16])
             if tile == 2:
                 display.blit(dirt_img,[x*16,y*16])
+            if tile == 3: #나중에 이미지 플렛폼으로 변환
+                display.blit(grass_img,[x*16,y*16])
             if tile != 0:
-                tile_rect.append(pygame.Rect(x*16,y*16,16,16))
+                tiles.append([pygame.Rect(x*16,y*16,16,2 if tile==3 else 16),'platform' if tile==3 else 'block'])
             x+=1
         y+=1
 
@@ -114,13 +117,14 @@ while True:
     player_momentum[1] += 0.98
     """if player_momentum[1] >= 3:
         player_momentum[1] = 3"""
+
     #moving rect
-    player_rect, collisions = check_movement_collide(player_rect,player_movement,tile_rect)
+    player_rect, collisions = check_movement_collide(player_rect,player_movement,tiles)
     if collisions['bottom'] == True:
         player_momentum[1]=0
 
-    for tile in tile_rect:
-        pygame.draw.rect(display,(255,0,0),tile)
+    for tile in tiles:
+        pygame.draw.rect(display,(255,0,0),tile[0])
     display.blit(player_image,[player_rect.x,player_rect.y])
 
     #event loop
