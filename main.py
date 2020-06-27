@@ -80,7 +80,8 @@ def check_movement_collide(rect,movement,tiles):
                 rect.top = tile.bottom
             collision_type['top']=True
         elif movement[1] > 0:
-            if tile_form =='block' or (tile_form =='platform' and rect.bottom-movement[1] < tile.top):
+            if tile_form =='block' or (tile_form =='platform' and rect.bottom-movement[1] <= tile.top):
+                print(rect)
                 rect.bottom = tile.top
                 collision_type['bottom']=True
     return rect, collision_type
