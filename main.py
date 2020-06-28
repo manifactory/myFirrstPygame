@@ -35,6 +35,12 @@ player_location = [50,50]
 player_momentum = [0,0]
 
 camera = [0,0]
+camera_center = [0,0]
+
+fullscreen = False
+
+framlate = 60
+last_time = pygame.time.get_ticks()
 
 #맵 데이터
 
@@ -81,16 +87,28 @@ def check_movement_collide(rect,movement,tiles):
             collision_type['top']=True
         elif movement[1] > 0:
             if tile_form =='block' or (tile_form =='platform' and rect.bottom-movement[1] <= tile.top):
-                print(rect)
                 rect.bottom = tile.top
                 collision_type['bottom']=True
     return rect, collision_type
 
 #main code
 while True:
+
+    t = pygame.time.get_ticks()
+    # deltaTime in seconds.
+    dt = (t - last_time) / 1000.0 *60
+    last_time = t
+    print(dt)
+
     display.fill((255,255,255))
 
     #camera move
+    camera[0] += int(player_rect.x - camera[0] - (DISPLAY_SIZE[0]-player_image.get_width())/2)/20 * dt
+    camera[1] += int(player_rect.y - camera[1] - (DISPLAY_SIZE[1]-player_image.get_height())/2)/20 * dt
+
+    """camera_center = pygame.Vector2(camera[0]-(DISPLAY_SIZE[0]-player_image.get_width())/2, camera[1]-(DISPLAY_SIZE[1]-player_image.get_height())/2)
+    camera=pygame.math.Vector2.lerp(pygame.Vector2(player_rect.x,player_rect.y),camera_center,dt)"""
+
 
 
     #draw tile
@@ -100,11 +118,11 @@ while True:
         x=0
         for tile in line:
             if tile == 1:
-                display.blit(grass_img,[x*16,y*16])
+                display.blit(grass_img,[x*16-camera[0],y*16-camera[1]])
             if tile == 2:
-                display.blit(dirt_img,[x*16,y*16])
+                display.blit(dirt_img,[x*16-camera[0],y*16-camera[1]])
             if tile == 3: #나중에 이미지 플렛폼으로 변환
-                display.blit(grass_img,[x*16,y*16])
+                display.blit(grass_img,[x*16-camera[0],y*16-camera[1]])
             if tile != 0:
                 tiles.append([pygame.Rect(x*16,y*16,16,2 if tile==3 else 16),'platform' if tile==3 else 'block'])
             x+=1
@@ -120,11 +138,11 @@ while True:
     #moving
     player_movement = [0,0]
     if move_left:
-        player_movement[0] -= 2
+        player_movement[0] -= 2 * dt
     if move_right:
-        player_movement[0] += 2
-    player_movement[1] += player_momentum[1] #중력 흉내
-    player_momentum[1] += 0.98
+        player_movement[0] += 2 * dt
+    player_movement[1] += player_momentum[1] * dt #중력 흉내
+    player_momentum[1] += 1
     """if player_momentum[1] >= 3:
         player_momentum[1] = 3"""
 
@@ -133,7 +151,7 @@ while True:
     if collisions['bottom'] == True:
         player_momentum[1]=0
 
-    display.blit(player_image,[player_rect.x,player_rect.y])
+    display.blit(player_image,[player_rect.x-camera[0],player_rect.y-camera[1]])
 
 
     """for tile in tiles:
@@ -142,14 +160,24 @@ while True:
     #event loop
     for event in pygame.event.get():
         if event.type==VIDEORESIZE:
-            WINDOW_SIZE=(event.w,event.h)
-            screen = pygame.display.set_mode((WINDOW_SIZE), pygame.RESIZABLE)
+            if not fullscreen:
+                WINDOW_SIZE=(event.w,event.h)
+                screen = pygame.display.set_mode((WINDOW_SIZE), pygame.RESIZABLE)
 
         if event.type==QUIT: #종료 이벤트
             pygame.quit()
             sys.exit()
 
         if event.type==KEYDOWN: #키 다운 이벤트
+            if event.key == K_F4:
+                fullscreen = not fullscreen
+                if fullscreen == True:
+                    WINDOW_SIZE=(screen.get_width(),screen.get_height())
+                    screen = pygame.display.set_mode((WINDOW_SIZE), pygame.FULLSCREEN)
+                else:
+                    WINDOW_SIZE=(screen.get_width(),screen.get_height())
+                    screen = pygame.display.set_mode((WINDOW_SIZE), pygame.RESIZABLE)
+
             if event.key == K_LEFT:
                 move_left=True
             if event.key == K_RIGHT:
