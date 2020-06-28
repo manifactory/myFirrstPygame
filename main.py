@@ -60,6 +60,9 @@ test_map = [list(map(int,line)) for line in load_map('./data/map/test.txt')]
 
 print(test_map)
 
+def loaf_chunk(map_data):
+    pass
+
 player_rect = pygame.Rect(player_location[0],player_location[1],player_image.get_width(),player_image.get_height())
 
 def collision_test(rect,tiles):
@@ -84,11 +87,10 @@ def check_movement_collide(rect,movement,tiles):
     rect.y += movement[1]
     for tile,tile_form in collision_test(rect,tiles):
         if movement[1] < 0:
-            canjump = True
             if tile_form =='block':
                 rect.top = tile.bottom
             collision_type['top']=True
-        elif movement[1] >= 0:
+        elif movement[1] > 0:
             if tile_form =='block' or (tile_form =='platform' and rect.bottom-movement[1] <= tile.top):
                 rect.bottom = tile.top
                 collision_type['bottom']=True
@@ -105,8 +107,8 @@ while True:
     display.fill((255,255,255))
 
     #camera move
-    camera[0] += round((player_rect.x - camera[0] - (DISPLAY_SIZE[0]-player_image.get_width())/2)/20 * dt)
-    camera[1] += round((player_rect.y - camera[1] - (DISPLAY_SIZE[1]-player_image.get_height())/2)/20 * dt)
+    camera[0] += ((player_rect.x - camera[0] - (DISPLAY_SIZE[0]-player_image.get_width())/2)/20 * dt)
+    camera[1] += ((player_rect.y - camera[1] - (DISPLAY_SIZE[1]-player_image.get_height())/2)/20 * dt)
 
     """camera_center = pygame.Vector2(camera[0]-(DISPLAY_SIZE[0]-player_image.get_width())/2, camera[1]-(DISPLAY_SIZE[1]-player_image.get_height())/2)
     camera=pygame.math.Vector2.lerp(pygame.Vector2(player_rect.x,player_rect.y),camera_center,dt)"""
@@ -149,11 +151,15 @@ while True:
         player_momentum[1] = 3"""
 
     #moving rect
-    player_rect, collisions = check_movement_collide(player_rect,[int(player_movement[0]),int(player_movement[1])],tiles)
+    player_rect, collisions = check_movement_collide(player_rect,[(player_movement[0]),(player_movement[1])],tiles)
     if collisions['bottom'] == True:
+        canjump = True
         player_momentum[1]=0
 
     display.blit(player_image,[player_rect.x-camera[0],player_rect.y-camera[1]])
+
+
+    print(collisions)
 
 
     """for tile in tiles:
