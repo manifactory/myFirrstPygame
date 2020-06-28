@@ -34,6 +34,8 @@ press_down = False
 player_location = [50,50]
 player_momentum = [0,0]
 
+canjump = True
+
 camera = [0,0]
 camera_center = [0,0]
 
@@ -82,10 +84,11 @@ def check_movement_collide(rect,movement,tiles):
     rect.y += movement[1]
     for tile,tile_form in collision_test(rect,tiles):
         if movement[1] < 0:
+            canjump = True
             if tile_form =='block':
                 rect.top = tile.bottom
             collision_type['top']=True
-        elif movement[1] > 0:
+        elif movement[1] >= 0:
             if tile_form =='block' or (tile_form =='platform' and rect.bottom-movement[1] <= tile.top):
                 rect.bottom = tile.top
                 collision_type['bottom']=True
@@ -95,16 +98,15 @@ def check_movement_collide(rect,movement,tiles):
 while True:
 
     t = pygame.time.get_ticks()
-    # deltaTime in seconds.
+    # deltaTime in framlate tick.
     dt = (t - last_time) / 1000.0 *60
     last_time = t
-    print(dt)
 
     display.fill((255,255,255))
 
     #camera move
-    camera[0] += int(player_rect.x - camera[0] - (DISPLAY_SIZE[0]-player_image.get_width())/2)/20 * dt
-    camera[1] += int(player_rect.y - camera[1] - (DISPLAY_SIZE[1]-player_image.get_height())/2)/20 * dt
+    camera[0] += round((player_rect.x - camera[0] - (DISPLAY_SIZE[0]-player_image.get_width())/2)/20 * dt)
+    camera[1] += round((player_rect.y - camera[1] - (DISPLAY_SIZE[1]-player_image.get_height())/2)/20 * dt)
 
     """camera_center = pygame.Vector2(camera[0]-(DISPLAY_SIZE[0]-player_image.get_width())/2, camera[1]-(DISPLAY_SIZE[1]-player_image.get_height())/2)
     camera=pygame.math.Vector2.lerp(pygame.Vector2(player_rect.x,player_rect.y),camera_center,dt)"""
@@ -141,13 +143,13 @@ while True:
         player_movement[0] -= 2 * dt
     if move_right:
         player_movement[0] += 2 * dt
-    player_movement[1] += player_momentum[1] * dt #중력 흉내
     player_momentum[1] += 1
+    player_movement[1] += player_momentum[1] * dt #중력 흉내
     """if player_momentum[1] >= 3:
         player_momentum[1] = 3"""
 
     #moving rect
-    player_rect, collisions = check_movement_collide(player_rect,player_movement,tiles)
+    player_rect, collisions = check_movement_collide(player_rect,[int(player_movement[0]),int(player_movement[1])],tiles)
     if collisions['bottom'] == True:
         player_momentum[1]=0
 
@@ -183,7 +185,9 @@ while True:
             if event.key == K_RIGHT:
                 move_right=True
             if event.key == K_UP:
-                player_momentum[1] = -10
+                if canjump == True:
+                    player_momentum[1] = -10
+                    canjump = False
                 move_up=True
             if event.key == K_DOWN:
                 move_down=True
