@@ -1,4 +1,4 @@
-import pygame, sys
+import pygame, sys, random
 
 clock = pygame.time.Clock()
 
@@ -43,6 +43,8 @@ fullscreen = False
 
 framlate = 60
 last_time = pygame.time.get_ticks()
+
+particles = []
 
 #맵 데이터
 
@@ -96,6 +98,8 @@ def check_movement_collide(rect,movement,tiles):
                 collision_type['top']=True
     return rect, collision_type
 
+
+
 #main code
 while True:
 
@@ -103,6 +107,7 @@ while True:
     # deltaTime in framlate tick.
     dt = (t - last_time) / 1000.0 *60
     last_time = t
+
 
     display.fill((255,255,255))
 
@@ -112,7 +117,6 @@ while True:
 
     """camera_center = pygame.Vector2(camera[0]-(DISPLAY_SIZE[0]-player_image.get_width())/2, camera[1]-(DISPLAY_SIZE[1]-player_image.get_height())/2)
     camera=pygame.math.Vector2.lerp(pygame.Vector2(player_rect.x,player_rect.y),camera_center,dt)"""
-
 
 
     #draw tile
@@ -131,6 +135,18 @@ while True:
                 tiles.append([pygame.Rect(x*16,y*16,16,2 if tile==3 else 16),'platform' if tile==3 else 'block'])
             x+=1
         y+=1
+
+    #paritcle
+    # [[location],[momentum],timer]
+    particles.append([[100, 100], [random.randint(0, 20) / 10 - 1, -2], random.randint(4, 6)])
+
+    for particle in sorted(particles,reverse=True):
+        particle[0][0] += particle[1][0]
+        particle[0][1] += particle[1][1]
+        particle[2] -= 0.1
+        pygame.draw.circle(display, (155,118,83), [int(particle[0][0]-camera[0]),int(particle[0][1]-camera[1])], int(particle[2]))
+        if particle[2] <= 0:
+            particles.remove(particle)
 
 
     #bouncing
@@ -157,9 +173,6 @@ while True:
         player_momentum[1]=0
 
     display.blit(player_image,[player_rect.x-camera[0],player_rect.y-camera[1]])
-
-
-
 
 
     """for tile in tiles:
@@ -200,6 +213,8 @@ while True:
                 move_right=True
             if event.key == K_UP:
                 if canjump == True:
+                    for i in range(20):
+                        particles.append([[player_rect.centerx,player_rect.centery+player_rect.height/2], [random.randint(0, 20) / 20 - 0.5, 0.1], random.randint(4, 7)])
                     player_momentum[1] = -10
                     canjump = False
                 move_up=True
@@ -216,6 +231,8 @@ while True:
             if event.key == K_DOWN:
                 move_down=False
 
+
     screen.blit(pygame.transform.scale(display,WINDOW_SIZE),[0,0])
     pygame.display.update()
     clock.tick(60)
+input()
