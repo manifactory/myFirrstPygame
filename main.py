@@ -167,10 +167,10 @@ while True:
 
     #event loop
     for event in pygame.event.get():
-        if event.type==VIDEORESIZE:
+        """if event.type==VIDEORESIZE:
             if not fullscreen:
                 WINDOW_SIZE=(event.w,event.h)
-                screen = pygame.display.set_mode((WINDOW_SIZE), pygame.RESIZABLE)
+                screen = pygame.display.set_mode((WINDOW_SIZE), pygame.RESIZABLE)"""
 
         if event.type==QUIT: #종료 이벤트
             pygame.quit()
