@@ -60,7 +60,7 @@ test_map = [list(map(int,line)) for line in load_map('./data/map/test.txt')]
 
 print(test_map)
 
-def loaf_chunk(map_data):
+def load_chunk(map_data):
     pass
 
 player_rect = pygame.Rect(player_location[0],player_location[1],player_image.get_width(),player_image.get_height())
@@ -76,24 +76,24 @@ def check_movement_collide(rect,movement,tiles):
     collision_type = {'top':False,'bottom':False,'left':False,'right':False}
     rect.x += movement[0]
     for tile,tile_form in collision_test(rect,tiles):
-        if movement[0] < 0:
-            if tile_form =='block':
-                rect.left = tile.right
-            collision_type['left']=True
-        elif movement[0] > 0:
+        if movement[0] > 0:
             if tile_form =='block':
                 rect.right = tile.left
-            collision_type['right']=True
+                collision_type['right']=True
+        elif movement[0] < 0:
+            if tile_form =='block':
+                rect.left = tile.right
+                collision_type['left']=True
     rect.y += movement[1]
     for tile,tile_form in collision_test(rect,tiles):
-        if movement[1] < 0:
-            if tile_form =='block':
-                rect.top = tile.bottom
-            collision_type['top']=True
-        elif movement[1] > 0:
+        if movement[1] > 0:
             if tile_form =='block' or (tile_form =='platform' and rect.bottom-movement[1] <= tile.top):
                 rect.bottom = tile.top
                 collision_type['bottom']=True
+        elif movement[1] < 0:
+            if tile_form =='block':
+                rect.top = tile.bottom
+                collision_type['top']=True
     return rect, collision_type
 
 #main code
@@ -159,7 +159,7 @@ while True:
     display.blit(player_image,[player_rect.x-camera[0],player_rect.y-camera[1]])
 
 
-    print(collisions)
+
 
 
     """for tile in tiles:
@@ -167,10 +167,12 @@ while True:
 
     #event loop
     for event in pygame.event.get():
-        if event.type==VIDEORESIZE:
+        """if event.type==VIDEORESIZE:
             if not fullscreen:
+                DISPLAY_SIZE = (event.w/2,event.h/2)
+                display = pygame.Surface(DISPLAY_SIZE)
                 WINDOW_SIZE=(event.w,event.h)
-                screen = pygame.display.set_mode((WINDOW_SIZE), pygame.RESIZABLE)
+                screen = pygame.display.set_mode((WINDOW_SIZE), pygame.RESIZABLE)"""
 
         if event.type==QUIT: #종료 이벤트
             pygame.quit()
@@ -180,9 +182,15 @@ while True:
             if event.key == K_F4:
                 fullscreen = not fullscreen
                 if fullscreen == True:
+                    DISPLAY_SIZE = (200,200)
+                    display = pygame.Surface(DISPLAY_SIZE)
                     WINDOW_SIZE=(screen.get_width(),screen.get_height())
                     screen = pygame.display.set_mode((WINDOW_SIZE), pygame.FULLSCREEN)
                 else:
+                    DISPLAY_SIZE = (200,200)
+                    display = pygame.Surface(DISPLAY_SIZE)
+                    WINDOW_SIZE=(screen.get_width(),screen.get_height())
+                    screen = pygame.display.set_mode((WINDOW_SIZE), pygame.FULLSCREEN)
                     WINDOW_SIZE=(screen.get_width(),screen.get_height())
                     screen = pygame.display.set_mode((WINDOW_SIZE), pygame.RESIZABLE)
 
