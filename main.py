@@ -49,9 +49,20 @@ fullscreen = False
 framlate = 60
 last_time = pygame.time.get_ticks()
 
+font = pygame.font.SysFont(None, 20)
+click = False
+
 particles = []
 
+mainClock = pygame.time.Clock()
+
 #맵 데이터
+
+def draw_text(text, font, color, surface, x, y):
+    textobj = font.render(text, 1, color)
+    textrect = textobj.get_rect()
+    textrect.topleft = (x, y)
+    surface.blit(textobj, textrect)
 
 def load_map(path):
     f = open(path,'r')
@@ -117,8 +128,21 @@ def check_movement_collide(rect,movement,tiles):
 
 #game loop
 def GAME_SCENE():
-    while True:
-        global last_time, display, DISPLAY_SIZE, fullscreen, player_rect, tile_map ,move_up,move_down,move_left,move_right
+    global last_time, screen,display, WINDOW_SIZE,DISPLAY_SIZE, fullscreen, player_rect, tile_map ,move_up,move_down,move_left,move_right
+
+    last_time =  pygame.time.get_ticks()
+    move_right = False
+    move_left = False
+    move_up = False
+    move_down = False
+    press_right = False
+    press_left = False
+    press_up = False
+    press_down = False
+    clicking = False
+
+    running = True
+    while running:
 
         t = pygame.time.get_ticks()
         # deltaTime in framlate tick.
@@ -167,7 +191,7 @@ def GAME_SCENE():
 
         #paritcle
         # [[location],[momentum],timer]
-        particles.append([[100, 100], [random.randint(0, 42) / 6 - 3.5, random.randint(0, 42) / 6 - 3.5], random.randint(4, 6), (255,0,0)])
+        #particles.append([[100, 100], [random.randint(0, 42) / 6 - 3.5, random.randint(0, 42) / 6 - 3.5], random.randint(4, 6), (255,0,0)])
 
         for particle in sorted(particles,reverse=True):
             particle[0][0] += particle[1][0]
@@ -212,11 +236,11 @@ def GAME_SCENE():
             canjump = True
             player_momentum[1]=0
 
-        player_rect_copy = pygame.Rect(player_rect)
+        """player_rect_copy = pygame.Rect(player_rect)
         player_rect_copy.x-=camera[0]
         player_rect_copy.y-=camera[1]
-        pygame.draw.rect(display,(250,50,0),player_rect_copy)
-        display.blit(player_image,[player_rect.x-camera[0]-player_rect.width/2,player_rect.y-camera[1]])
+        pygame.draw.rect(display,(250,50,0),player_rect_copy)"""
+        display.blit(player_image,[player_rect.x-camera[0]-int(player_rect.width/2),player_rect.y-camera[1]])
 
 
         """for tile in tiles:
@@ -230,12 +254,16 @@ def GAME_SCENE():
                     display = pygame.Surface(DISPLAY_SIZE)
                     WINDOW_SIZE=(event.w,event.h)
                     screen = pygame.display.set_mode((WINDOW_SIZE), pygame.RESIZABLE)
+                last_time =  pygame.time.get_ticks()
 
             if event.type==QUIT: #종료 이벤트
                 pygame.quit()
                 sys.exit()
 
             if event.type==KEYDOWN: #키 다운 이벤트
+                if event.key == K_ESCAPE:
+                    running = False
+
                 if event.key == K_F4:
                     fullscreen = not fullscreen
                     if fullscreen == True:
@@ -250,6 +278,7 @@ def GAME_SCENE():
                         screen = pygame.display.set_mode((WINDOW_SIZE), pygame.FULLSCREEN)
                         WINDOW_SIZE=(screen.get_width(),screen.get_height())
                         screen = pygame.display.set_mode((WINDOW_SIZE), pygame.RESIZABLE)
+                    last_time =  pygame.time.get_ticks()
 
                 if event.key == K_LEFT:
                     move_left=True
@@ -258,7 +287,7 @@ def GAME_SCENE():
                 if event.key == K_UP:
                     if canjump == True:
                         for i in range(20):
-                            particles.append([[player_rect.centerx,player_rect.centery+player_rect.height/2], [random.randint(0, 20) / 20 - 0.5, random.randint(0, 20)/5], random.randint(2, 3), (155,118,83)])
+                            particles.append([[player_rect.centerx,player_rect.centery+player_rect.height/2], [random.randint(0, 20) / 20 - 0.5, random.randint(0, 40)/20], random.randint(2, 3), (155,118,83)])
                         player_momentum[1] = -10
                         canjump = False
                     move_up=True
@@ -275,23 +304,51 @@ def GAME_SCENE():
                 if event.key == K_DOWN:
                     move_down=False
 
-            if event.type == MOUSEBUTTONDOWN:
-                if event.button == 1:
-                    clicking = True
-
-            if event.type == MOUSEBUTTONUP:
-                if event.button == 1:
-                    clicking = False
-
 
         screen.blit(pygame.transform.scale(display,WINDOW_SIZE),[0,0])
         pygame.display.update()
         clock.tick(60)
 
-#menu
-def MAINMENU_SCENE():
+def OPTION_SCENE():
     pass
 
-GAME_SCENE()
+#menu
+def MAINMENU_SCENE():
+    global screen, click
+    while True:
+
+        screen.fill((0,0,0))
+        draw_text('main menu', font, (255, 255, 255), screen, 20, 20)
+
+        mx, my = pygame.mouse.get_pos()
+
+        button_1 = pygame.Rect(50, 100, 200, 50)
+        button_2 = pygame.Rect(50, 200, 200, 50)
+        if button_1.collidepoint((mx, my)):
+            if click:
+                GAME_SCENE()
+        if button_2.collidepoint((mx, my)):
+            if click:
+                OPTION_SCENE()
+        pygame.draw.rect(screen, (255, 0, 0), button_1)
+        pygame.draw.rect(screen, (255, 0, 0), button_2)
+
+        click = False
+        for event in pygame.event.get():
+            if event.type == QUIT:
+                pygame.quit()
+                sys.exit()
+            if event.type == KEYDOWN:
+                if event.key == K_ESCAPE:
+                    pygame.quit()
+                    sys.exit()
+            if event.type == MOUSEBUTTONDOWN:
+                if event.button == 1:
+                    click = True
+
+        pygame.display.update()
+        mainClock.tick(60)
+
+MAINMENU_SCENE()
 
 input()
