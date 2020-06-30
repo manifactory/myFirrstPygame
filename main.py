@@ -30,6 +30,7 @@ press_right = False
 press_left = False
 press_up = False
 press_down = False
+clicking = False
 
 player_location = [50,50]
 player_momentum = [0,0]
@@ -62,10 +63,22 @@ test_map = [list(map(int,line)) for line in load_map('./data/map/test.txt')]
 
 print(test_map)
 
+TILE_SIZE = 16
+
+tile_map={}
+y=0
+for line in test_map:
+    x=0
+    for tile in line:
+        if tile != 0:
+            tile_map[str(x) + ';' + str(y)] = [x,y,tile]
+        x+=1
+    y+=1
+
 def load_chunk(map_data):
     pass
 
-player_rect = pygame.Rect(player_location[0],player_location[1],player_image.get_width(),player_image.get_height())
+player_rect = pygame.Rect(player_location[0],player_location[1],player_image.get_width()/2,player_image.get_height())
 
 def collision_test(rect,tiles):
     hit_list=[]
@@ -121,6 +134,18 @@ while True:
 
     #draw tile
     tiles=[]
+    for tile in tile_map:
+        x,y,tile_form=tile_map[tile]
+        if tile_form == 1:
+            display.blit(grass_img,[x*16-camera[0],y*16-camera[1]])
+        if tile_form == 2:
+            display.blit(dirt_img,[x*16-camera[0],y*16-camera[1]])
+        if tile_form == 3: #나중에 이미지 플렛폼으로 변환
+            display.blit(grass_img,[x*16-camera[0],y*16-camera[1]])
+        if tile_form != 0:
+            tiles.append([pygame.Rect(x*16,y*16,16,2 if tile_form==3 else 16),'platform' if tile_form==3 else 'block'])
+
+    """tiles=[]
     y=0
     for line in test_map:
         x=0
@@ -134,17 +159,28 @@ while True:
             if tile != 0:
                 tiles.append([pygame.Rect(x*16,y*16,16,2 if tile==3 else 16),'platform' if tile==3 else 'block'])
             x+=1
-        y+=1
+        y+=1"""
 
     #paritcle
     # [[location],[momentum],timer]
-    particles.append([[100, 100], [random.randint(0, 20) / 10 - 1, -2], random.randint(4, 6)])
+    particles.append([[100, 100], [random.randint(0, 42) / 6 - 3.5, random.randint(0, 42) / 6 - 3.5], random.randint(4, 6), (255,0,0)])
 
     for particle in sorted(particles,reverse=True):
         particle[0][0] += particle[1][0]
+        loc_str = str(int(particle[0][0] / TILE_SIZE)) + ';' + str(int(particle[0][1] / TILE_SIZE))
+        if loc_str in tile_map:
+            particle[1][0] = -0.7 * particle[1][0]
+            particle[1][1] *= 0.95
+            particle[0][0] += particle[1][0] * 2
         particle[0][1] += particle[1][1]
-        particle[2] -= 0.1
-        pygame.draw.circle(display, (155,118,83), [int(particle[0][0]-camera[0]),int(particle[0][1]-camera[1])], int(particle[2]))
+        loc_str = str(int(particle[0][0] / TILE_SIZE)) + ';' + str(int(particle[0][1] / TILE_SIZE))
+        if loc_str in tile_map:
+            particle[1][1] = -0.7 * particle[1][1]
+            particle[1][0] *= 0.95
+            particle[0][1] += particle[1][1] * 2
+        particle[2] -= 0.035
+        particle[1][1] += 0.15
+        pygame.draw.circle(display, particle[3], [int(particle[0][0]-camera[0]),int(particle[0][1]-camera[1])], int(particle[2]))
         if particle[2] <= 0:
             particles.remove(particle)
 
@@ -180,12 +216,12 @@ while True:
 
     #event loop
     for event in pygame.event.get():
-        """if event.type==VIDEORESIZE:
+        if event.type==VIDEORESIZE:
             if not fullscreen:
                 DISPLAY_SIZE = (event.w/2,event.h/2)
                 display = pygame.Surface(DISPLAY_SIZE)
                 WINDOW_SIZE=(event.w,event.h)
-                screen = pygame.display.set_mode((WINDOW_SIZE), pygame.RESIZABLE)"""
+                screen = pygame.display.set_mode((WINDOW_SIZE), pygame.RESIZABLE)
 
         if event.type==QUIT: #종료 이벤트
             pygame.quit()
@@ -214,7 +250,7 @@ while True:
             if event.key == K_UP:
                 if canjump == True:
                     for i in range(20):
-                        particles.append([[player_rect.centerx,player_rect.centery+player_rect.height/2], [random.randint(0, 20) / 20 - 0.5, 0.1], random.randint(4, 7)])
+                        particles.append([[player_rect.centerx,player_rect.centery+player_rect.height/2], [random.randint(0, 20) / 20 - 0.5, random.randint(0, 20)/5], random.randint(2, 3), (155,118,83)])
                     player_momentum[1] = -10
                     canjump = False
                 move_up=True
@@ -230,6 +266,14 @@ while True:
                 move_up=False
             if event.key == K_DOWN:
                 move_down=False
+
+        if event.type == MOUSEBUTTONDOWN:
+            if event.button == 1:
+                clicking = True
+
+        if event.type == MOUSEBUTTONUP:
+            if event.button == 1:
+                clicking = False
 
 
     screen.blit(pygame.transform.scale(display,WINDOW_SIZE),[0,0])
