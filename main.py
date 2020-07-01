@@ -8,10 +8,10 @@ pygame.init()
 
 #윈도우 스크린 초기화
 pygame.display.set_caption('My Pygame Window')
-WINDOW_SIZE = (400,400)
+WINDOW_SIZE = (1280,720)
 screen = pygame.display.set_mode(WINDOW_SIZE, pygame.RESIZABLE)
 
-DISPLAY_SIZE = (200,200)
+DISPLAY_SIZE = (640,360)
 display = pygame.Surface(DISPLAY_SIZE)
 
 #이미지 리소스
@@ -39,6 +39,8 @@ player_momentum = [0,0]
 player_rect = pygame.Rect(player_location[0]-player_image.get_width()/4, player_location[1], player_image.get_width()/2, player_image.get_height())
 print(player_rect)
 
+see_left = True
+
 canjump = True
 
 camera = [0,0]
@@ -53,6 +55,7 @@ font = pygame.font.SysFont(None, 20)
 click = False
 
 particles = []
+no_collide_particles = []
 
 mainClock = pygame.time.Clock()
 
@@ -126,9 +129,12 @@ def check_movement_collide(rect,movement,tiles):
                 collision_type['top']=True
     return rect, collision_type
 
+def missile(loc,momentum):
+    pass
+
 #game loop
 def GAME_SCENE():
-    global last_time, screen,display, WINDOW_SIZE,DISPLAY_SIZE, fullscreen, player_rect, tile_map ,move_up,move_down,move_left,move_right
+    global last_time, screen,display, WINDOW_SIZE,DISPLAY_SIZE, fullscreen, player_rect, see_left, tile_map ,move_up,move_down,move_left,move_right
 
     last_time =  pygame.time.get_ticks()
     move_right = False
@@ -141,8 +147,10 @@ def GAME_SCENE():
     press_down = False
     clicking = False
 
+
     running = True
     while running:
+        pygame.event.pump()
 
         t = pygame.time.get_ticks()
         # deltaTime in framlate tick.
@@ -150,11 +158,11 @@ def GAME_SCENE():
         last_time = t
 
 
-        display.fill((255,255,255))
+        display.fill((135,206,235))
 
         #camera move
-        camera[0] += ((player_rect.x - camera[0] - (DISPLAY_SIZE[0]-player_image.get_width())/2)/20 * dt)
-        camera[1] += ((player_rect.y - camera[1] - (DISPLAY_SIZE[1]-player_image.get_height())/2)/20 * dt)
+        camera[0] += (player_rect.centerx - camera[0] - (DISPLAY_SIZE[0]/2)) / 20*dt
+        camera[1] += (player_rect.centery - camera[1] - (DISPLAY_SIZE[1]/2)) / 20*dt
 
         """camera_center = pygame.Vector2(camera[0]-(DISPLAY_SIZE[0]-player_image.get_width())/2, camera[1]-(DISPLAY_SIZE[1]-player_image.get_height())/2)
         camera=pygame.math.Vector2.lerp(pygame.Vector2(player_rect.x,player_rect.y),camera_center,dt)"""
@@ -189,6 +197,42 @@ def GAME_SCENE():
                 x+=1
             y+=1"""
 
+
+        #bouncing
+        """if player_location[1] > WINDOW_SIZE[1]-player_image.get_height():
+            player_momentum[1] = -player_momentum[1]
+        else:
+            player_momentum[1] += 0.98"""
+
+        #moving
+        player_movement = [0,0]
+        if move_right:
+            player_movement[0] += 3 * dt
+        if move_left:
+            player_movement[0] -= 3 * dt
+        player_momentum[1] += 1
+        player_movement[1] += player_momentum[1] * dt #중력 흉내
+        """if player_momentum[1] >= 3:
+            player_momentum[1] = 3"""
+
+        #moving rect
+        player_rect, collisions = check_movement_collide(player_rect,[(player_movement[0]),(player_movement[1])],tiles)
+        if collisions['bottom'] == True:
+            canjump = True
+            player_momentum[1]=0
+
+        """player_rect_copy = pygame.Rect(player_rect)
+        player_rect_copy.x-=camera[0]
+        player_rect_copy.y-=camera[1]
+        pygame.draw.rect(display,(250,50,0),player_rect_copy)"""
+        if see_left == False:
+            display.blit(player_image,[player_rect.x-camera[0]-int(player_rect.width/2),player_rect.y-camera[1]])
+        else:
+            display.blit(pygame.transform.flip(player_image, True, False), [player_rect.x-camera[0]-int(player_rect.width/2), player_rect.y-camera[1]])
+
+        """for tile in tiles:
+            pygame.draw.rect(display,(255,0,0),tile[0])"""
+
         #paritcle
         # [[location],[momentum],timer]
         #particles.append([[100, 100], [random.randint(0, 42) / 6 - 3.5, random.randint(0, 42) / 6 - 3.5], random.randint(4, 6), (255,0,0)])
@@ -206,45 +250,19 @@ def GAME_SCENE():
                 particle[1][1] = -0.7 * particle[1][1]
                 particle[1][0] *= 0.95
                 particle[0][1] += particle[1][1] * 2
-            particle[2] -= 0.035
-            particle[1][1] += 0.15
-            pygame.draw.circle(display, particle[3], [int(particle[0][0]-camera[0]),int(particle[0][1]-camera[1])], int(particle[2]))
-            if particle[2] <= 0:
+            particle[2][0] -= particle[2][1]
+            particle[1][1] += 1
+            pygame.draw.circle(display, particle[3], [int(particle[0][0]-camera[0]),int(particle[0][1]-camera[1])], int(particle[2][0]))
+            if particle[2][0] <= 0:
                 particles.remove(particle)
 
-
-        #bouncing
-        """if player_location[1] > WINDOW_SIZE[1]-player_image.get_height():
-            player_momentum[1] = -player_momentum[1]
-        else:
-            player_momentum[1] += 0.98"""
-
-        #moving
-        player_movement = [0,0]
-        if move_right:
-            player_movement[0] += 3 * dt
-        if move_left:
-            player_movement[0] -= 2 * dt
-        player_momentum[1] += 1
-        player_movement[1] += player_momentum[1] * dt #중력 흉내
-        """if player_momentum[1] >= 3:
-            player_momentum[1] = 3"""
-
-        #moving rect
-        player_rect, collisions = check_movement_collide(player_rect,[(player_movement[0]),(player_movement[1])],tiles)
-        if collisions['bottom'] == True:
-            canjump = True
-            player_momentum[1]=0
-
-        """player_rect_copy = pygame.Rect(player_rect)
-        player_rect_copy.x-=camera[0]
-        player_rect_copy.y-=camera[1]
-        pygame.draw.rect(display,(250,50,0),player_rect_copy)"""
-        display.blit(player_image,[player_rect.x-camera[0]-int(player_rect.width/2),player_rect.y-camera[1]])
-
-
-        """for tile in tiles:
-            pygame.draw.rect(display,(255,0,0),tile[0])"""
+        for particle in sorted(no_collide_particles,reverse=True):
+            particle[0][0] += particle[1][0]
+            particle[0][1] += particle[1][1]
+            particle[2][0] -= particle[2][1]
+            pygame.draw.circle(display, particle[3], [int(particle[0][0]-camera[0]),int(particle[0][1]-camera[1])], int(particle[2][0]))
+            if particle[2][0] <= 0:
+                no_collide_particles.remove(particle)
 
         #event loop
         for event in pygame.event.get():
@@ -267,32 +285,30 @@ def GAME_SCENE():
                 if event.key == K_F4:
                     fullscreen = not fullscreen
                     if fullscreen == True:
-                        DISPLAY_SIZE = (200,200)
-                        display = pygame.Surface(DISPLAY_SIZE)
                         WINDOW_SIZE=(screen.get_width(),screen.get_height())
                         screen = pygame.display.set_mode((WINDOW_SIZE), pygame.FULLSCREEN)
                     else:
-                        DISPLAY_SIZE = (200,200)
-                        display = pygame.Surface(DISPLAY_SIZE)
                         WINDOW_SIZE=(screen.get_width(),screen.get_height())
                         screen = pygame.display.set_mode((WINDOW_SIZE), pygame.FULLSCREEN)
-                        WINDOW_SIZE=(screen.get_width(),screen.get_height())
-                        screen = pygame.display.set_mode((WINDOW_SIZE), pygame.RESIZABLE)
                     last_time =  pygame.time.get_ticks()
 
                 if event.key == K_LEFT:
+                    see_left=True
                     move_left=True
                 if event.key == K_RIGHT:
+                    see_left=False
                     move_right=True
                 if event.key == K_UP:
                     if canjump == True:
                         for i in range(20):
-                            particles.append([[player_rect.centerx,player_rect.centery+player_rect.height/2], [random.randint(0, 20) / 20 - 0.5, random.randint(0, 40)/20], random.randint(2, 3), (155,118,83)])
+                            no_collide_particles.append([[player_rect.centerx,player_rect.centery+player_rect.height/2], [random.randint(0, 40) / 20 - 0.75, 0], [random.randint(2, 9),0.3], (155,118,83)])
                         player_momentum[1] = -10
                         canjump = False
                     move_up=True
                 if event.key == K_DOWN:
                     move_down=True
+                if event.key == K_SPACE:
+                    particles.append([[player_rect.centerx,player_rect.centery-player_rect.height/2], [20+(-40*int(see_left)), 0], [13,0.035], (255,0,0)])
 
             if event.type==KEYUP: #키 업 이벤트
                 if event.key == K_LEFT:
@@ -313,7 +329,7 @@ def OPTION_SCENE():
     pass
 
 #menu
-def MAINMENU_SCENE():
+"""def MAINMENU_SCENE():
     global screen, click
     while True:
 
@@ -349,6 +365,9 @@ def MAINMENU_SCENE():
         pygame.display.update()
         mainClock.tick(60)
 
-MAINMENU_SCENE()
+MAINMENU_SCENE()"""
 
-input()
+GAME_SCENE()
+
+pygame.quit()
+sys.exit()
