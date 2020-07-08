@@ -1,4 +1,4 @@
-import pygame, sys, random
+import pygame, sys, random, pprint
 
 clock = pygame.time.Clock()
 
@@ -76,7 +76,7 @@ def load_map(path):
     for row in data:
         map_data.append(list(row))
     map_data = [list(map(int,line)) for line in map_data]
-    print(map_data)
+    pprint.pprint(map_data,indent=len(map_data[0]))
     return map_data
 
 test_map = load_map('./data/map/test.txt')
