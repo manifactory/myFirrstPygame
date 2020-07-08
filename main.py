@@ -150,6 +150,8 @@ def GAME_SCENE():
 
     running = True
     while running:
+        pygame.display.set_caption('My Pygame Window'+str(clock.get_fps()))
+
         pygame.event.pump()
 
         t = pygame.time.get_ticks()
