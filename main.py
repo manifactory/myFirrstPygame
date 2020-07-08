@@ -150,11 +150,13 @@ def GAME_SCENE():
 
     running = True
     while running:
+        pygame.display.set_caption('My Pygame Window'+str(clock.get_fps()))
+
         pygame.event.pump()
 
         t = pygame.time.get_ticks()
         # deltaTime in framlate tick.
-        dt = (t - last_time) / 1000.0 *60
+        dt = (t - last_time) / 1000.0 * 60
         last_time = t
 
 
@@ -207,10 +209,10 @@ def GAME_SCENE():
         #moving
         player_movement = [0,0]
         if move_right:
-            player_movement[0] += 3 * dt
+            player_movement[0] += 6 * dt
         if move_left:
-            player_movement[0] -= 3 * dt
-        player_momentum[1] += 1
+            player_movement[0] -= 6 * dt
+        player_momentum[1] += 1 *dt
         player_movement[1] += player_momentum[1] * dt #중력 흉내
         """if player_momentum[1] >= 3:
             player_momentum[1] = 3"""
@@ -238,28 +240,28 @@ def GAME_SCENE():
         #particles.append([[100, 100], [random.randint(0, 42) / 6 - 3.5, random.randint(0, 42) / 6 - 3.5], random.randint(4, 6), (255,0,0)])
 
         for particle in sorted(particles,reverse=True):
-            particle[0][0] += particle[1][0]
+            particle[0][0] += particle[1][0] *dt
             loc_str = str(int(particle[0][0] / TILE_SIZE)) + ';' + str(int(particle[0][1] / TILE_SIZE))
             if loc_str in tile_map:
-                particle[1][0] = -0.7 * particle[1][0]
+                particle[1][0] *= -0.7
                 particle[1][1] *= 0.95
-                particle[0][0] += particle[1][0] * 2
-            particle[0][1] += particle[1][1]
+                particle[0][0] += particle[1][0] * 2 *dt
+            particle[0][1] += particle[1][1] *dt
             loc_str = str(int(particle[0][0] / TILE_SIZE)) + ';' + str(int(particle[0][1] / TILE_SIZE))
             if loc_str in tile_map:
-                particle[1][1] = -0.7 * particle[1][1]
+                particle[1][1] *= -0.7
                 particle[1][0] *= 0.95
-                particle[0][1] += particle[1][1] * 2
-            particle[2][0] -= particle[2][1]
-            particle[1][1] += 1
+                particle[0][1] += particle[1][1] * 2 *dt
+            particle[2][0] -= particle[2][1] *dt
+            particle[1][1] += 1 *dt
             pygame.draw.circle(display, particle[3], [int(particle[0][0]-camera[0]),int(particle[0][1]-camera[1])], int(particle[2][0]))
             if particle[2][0] <= 0:
                 particles.remove(particle)
 
         for particle in sorted(no_collide_particles,reverse=True):
-            particle[0][0] += particle[1][0]
-            particle[0][1] += particle[1][1]
-            particle[2][0] -= particle[2][1]
+            particle[0][0] += particle[1][0] *dt
+            particle[0][1] += particle[1][1] *dt
+            particle[2][0] -= particle[2][1] *dt
             pygame.draw.circle(display, particle[3], [int(particle[0][0]-camera[0]),int(particle[0][1]-camera[1])], int(particle[2][0]))
             if particle[2][0] <= 0:
                 no_collide_particles.remove(particle)
@@ -323,7 +325,7 @@ def GAME_SCENE():
 
         screen.blit(pygame.transform.scale(display,WINDOW_SIZE),[0,0])
         pygame.display.update()
-        clock.tick(60)
+        clock.tick(2000)
 
 def OPTION_SCENE():
     pass
