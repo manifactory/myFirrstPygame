@@ -51,7 +51,7 @@ fullscreen = False
 framlate = 60
 last_time = pygame.time.get_ticks()
 
-font = pygame.font.SysFont(None, 20)
+font = pygame.font.SysFont(None, 16)
 click = False
 
 particles = []
@@ -62,7 +62,7 @@ mainClock = pygame.time.Clock()
 #맵 데이터
 
 def draw_text(text, font, color, surface, x, y):
-    textobj = font.render(text, 1, color)
+    textobj = font.render(text, True, color)
     textrect = textobj.get_rect()
     textrect.topleft = (x, y)
     surface.blit(textobj, textrect)
@@ -76,7 +76,7 @@ def load_map(path):
     for row in data:
         map_data.append(list(row))
     map_data = [list(map(int,line)) for line in map_data]
-    pprint.pprint(map_data,indent=len(map_data[0]))
+    print(map_data)
     return map_data
 
 test_map = load_map('./data/map/test.txt')
@@ -109,14 +109,15 @@ def check_movement_collide(rect,movement,tiles):
     collision_type = {'top':False,'bottom':False,'left':False,'right':False}
     rect.x += movement[0]
     for tile,tile_form in collision_test(rect,tiles):
-        if movement[0] > 0:
-            if tile_form =='block':
-                rect.right = tile.left
-                collision_type['right']=True
-        elif movement[0] < 0:
+        if movement[0] < 0:
             if tile_form =='block':
                 rect.left = tile.right
                 collision_type['left']=True
+        elif movement[0] > 0:
+            if tile_form =='block':
+                rect.right = tile.left
+                collision_type['right']=True
+
     rect.y += movement[1]
     for tile,tile_form in collision_test(rect,tiles):
         if movement[1] > 0:
@@ -152,6 +153,7 @@ def GAME_SCENE():
     while running:
         pygame.display.set_caption('My Pygame Window'+str(clock.get_fps()))
 
+
         pygame.event.pump()
 
         t = pygame.time.get_ticks()
@@ -161,6 +163,7 @@ def GAME_SCENE():
 
 
         display.fill((135,206,235))
+        draw_text('fps:'+str(clock.get_fps()), font, (20,0,0), display, 20,20)
 
         #camera move
         camera[0] += (player_rect.centerx - camera[0] - (DISPLAY_SIZE[0]/2)) / 20*dt
@@ -208,6 +211,7 @@ def GAME_SCENE():
 
         #moving
         player_movement = [0,0]
+        print(move_left,move_right)
         if move_right:
             player_movement[0] += 6 * dt
         if move_left:
