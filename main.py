@@ -39,7 +39,6 @@ clicking = False
 player_location = [50,50]
 player_momentum = [0,0]
 player_rect = pygame.Rect(player_location[0]-player_image.get_width()/4, player_location[1], player_image.get_width()/2, player_image.get_height())
-print(player_rect)
 
 see_left = True
 
@@ -213,7 +212,6 @@ def GAME_SCENE():
 
         #moving
         player_movement = [0,0]
-        print(move_left,move_right)
         if move_right:
             player_movement[0] += 6 * dt
         if move_left:
