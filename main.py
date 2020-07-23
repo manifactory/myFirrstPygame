@@ -1,4 +1,6 @@
-import pygame, sys, random, pprint
+import pygame, sys, random, pprint, os
+
+current_path = os.getcwd()
 
 clock = pygame.time.Clock()
 
@@ -16,8 +18,8 @@ display = pygame.Surface(DISPLAY_SIZE)
 
 #이미지 리소스
 TILE_SIZE = 16
-
-player_image = pygame.image.load('Sprite-0001.png')
+print(current_path)
+player_image = pygame.image.load(current_path+'\Sprite-0001.png')
 
 grass_img = pygame.image.load('grass.png')
 dirt_img = pygame.image.load('dirt.png')
